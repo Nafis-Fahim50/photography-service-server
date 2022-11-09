@@ -35,7 +35,6 @@ async function run(){
     try{
         const serviceCollection = client.db('nafisPhotography').collection('services');
         const reviewCollection = client.db('nafisPhotography').collection('review')
-        const clientServiceCollection = client.db('nafisPhotography').collection('addService')
 
         app.post('/jwt', (req, res) =>{
             const user = req.body;
@@ -98,17 +97,10 @@ async function run(){
         })
 
         // add service by user 
-        app.post('/addservice',async (req,res)=>{
+        app.post('/allservices',async (req,res)=>{
             const addService = req.body;
-            const result = await clientServiceCollection.insertOne(addService);
+            const result = await serviceCollection.insertOne(addService);
             res.send(result);
-        })
-
-        app.get('/addservice', async (req,res)=>{
-            const query = {};
-            const cursor = clientServiceCollection.find(query);
-            const addService = await cursor.toArray();
-            res.send(addService);
         })
 
         app.delete('/userReview/:id', async(req,res)=>{
