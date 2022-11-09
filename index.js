@@ -17,6 +17,7 @@ async function run(){
     try{
         const serviceCollection = client.db('nafisPhotography').collection('services');
         const reviewCollection = client.db('nafisPhotography').collection('review')
+        const clientServiceCollection = client.db('nafisPhotography').collection('addService')
 
         app.get('/services',async (req,res)=>{
             const query = {}
@@ -53,7 +54,6 @@ async function run(){
         })
 
         // get review data by email query 
-
         app.get('/userReview', async (req,res)=>{
             let query = {};
 
@@ -66,6 +66,13 @@ async function run(){
             const cursor = reviewCollection.find(query);
             const review = await cursor.toArray();
             res.send(review);
+        })
+
+        // add service by user 
+        app.post('/addservice',async (req,res)=>{
+            const addService = req.body;
+            const result = await clientServiceCollection.insertOne(addService);
+            res.send(result);
         })
 
         app.delete('/userReview/:id', async(req,res)=>{
