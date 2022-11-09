@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express()
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 
@@ -13,11 +14,34 @@ app.use(express.json())
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.6llxg7j.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+function verfiyJWT (req,res,next){
+    const authHeader = req.headers.authorization;
+
+    if(!authHeader){
+        return res.status(401).send({message:'unauthorized access'})
+    }
+
+    const token = authHeader.split(' ')[1];
+    jwt.verify(token,process.env.SECRET_ACCESS_TOKEN, function(err, decoded){
+        if(err){
+            return res.status(403).send({message:'forbidden access'})
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 async function run(){
     try{
         const serviceCollection = client.db('nafisPhotography').collection('services');
         const reviewCollection = client.db('nafisPhotography').collection('review')
         const clientServiceCollection = client.db('nafisPhotography').collection('addService')
+
+        app.post('/jwt', (req, res) =>{
+            const user = req.body;
+            const token = jwt.sign(user, process.env.SECRET_ACCESS_TOKEN, {expiresIn:'1d'});
+            res.send({token});
+        })
 
         app.get('/services',async (req,res)=>{
             const query = {}
@@ -53,10 +77,15 @@ async function run(){
             res.send(review);
         })
 
-        // get review data by email query 
-        app.get('/userReview', async (req,res)=>{
-            let query = {};
+        // get review data by email query & call verifyJWT funtion
+        app.get('/userReview', verfiyJWT, async (req,res)=>{
+            const decoded = req.decoded;
 
+            if(decoded.email !== req.query.email){
+                res.status(403).send({message: 'unauthorized access'})
+            }
+
+            let query = {};
             if(req.query.email){
                 query = {
                     email: req.query.email
