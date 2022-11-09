@@ -75,6 +75,13 @@ async function run(){
             res.send(result);
         })
 
+        app.get('/addservice', async (req,res)=>{
+            const query = {};
+            const cursor = clientServiceCollection.find(query);
+            const addService = await cursor.toArray();
+            res.send(addService);
+        })
+
         app.delete('/userReview/:id', async(req,res)=>{
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
