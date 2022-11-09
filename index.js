@@ -76,6 +76,28 @@ async function run(){
             res.send(review);
         })
 
+        app.get('/review/:id', async (req,res)=>{
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const review = await reviewCollection.findOne(query);
+            res.send(review);
+        })
+
+        app.put('/review/:id', async (req,res)=>{
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const review = req.body;
+            const updateReview = {
+                $set: {
+                    comment: review.comment,
+                    description: review.description,
+                    rating: review.rating
+                }
+            }
+            const result = await reviewCollection.updateOne(filter,updateReview)
+            res.send(result);
+        })
+
         // get review data by email query & call verifyJWT funtion
         app.get('/userReview', verfiyJWT, async (req,res)=>{
             const decoded = req.decoded;
@@ -102,6 +124,7 @@ async function run(){
             const result = await serviceCollection.insertOne(addService);
             res.send(result);
         })
+
 
         app.delete('/userReview/:id', async(req,res)=>{
             const id = req.params.id;
